@@ -823,6 +823,9 @@ class BTManager(Thread):
         if not self.ready:
             logging.critical(f"{self.header} Thread not ready. Cancelling")
             return
+        if not self.phones:
+            logging.critical(f"{self.header} No phones configured. Cancelling")
+            return
         try:
             self.up_one_phone()
             self.watchdog()
@@ -852,7 +855,7 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.7.1"
+    __version__ = "1.7.2"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
