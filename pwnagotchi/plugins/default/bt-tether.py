@@ -214,7 +214,7 @@ class BTPhone:
         self.bluetooth_state = BTState.NOTCONFIGURED
         if paired := result.find(r"Paired: yes") != -1:
             self.bluetooth_state = BTState.PAIRED
-        if trusted := result.find(r"Trusted: yes"):
+        if trusted := result.find(r"Trusted: yes") != -1:
             self.bluetooth_state = BTState.TRUSTED
         if paired and trusted:
             self.bluetooth_state = BTState.CONFIGURED
@@ -590,13 +590,17 @@ class BTManager(Thread):
         """
         Check bluetooth pairing, configure NetworkMananger then tries to up all.
         """
-        try:
-            self.restart_bluetoothd()
-            for key in self.phones:
+
+        self.restart_bluetoothd()
+        for key in list(self.phones.keys()):
+            try:
                 self.phones[key].configure()
-            self.ready = True
-        except ConfigError:
-            logging.error(f"{self.header} Error while configuring")
+            except ConfigError:
+                logging.error(f"{self.header} Error while configuring: {key}")
+                logging.info(f"{self.header} Deleting {key}")
+                del self.phones[key]
+
+        self.ready = True
 
     # ---------- KERNEL DRIVERS ----------
     def get_last_timestamp(self) -> tuple[str | None, str | None]:
