@@ -845,8 +845,11 @@ class BTManager(Thread):
 
     # ---------- CONNECTION STATE ----------
     def get_connection_state(self) -> ConnectionState:
-        state = max([phone.connection_state.value for phone in self.phones.values()])
-        return ConnectionState(state)
+        try:
+            state = max([phone.connection_state.value for phone in self.phones.values()])
+            return ConnectionState(state)
+        except ValueError:
+            return ConnectionState.ERROR
 
 
 class BTTether(plugins.Plugin):
