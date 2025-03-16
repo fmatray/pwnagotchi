@@ -646,6 +646,9 @@ class BTManager(Thread):
         hciconfig("down")
         for module in ["hci_uart", "btbcm", "bnep", "bluetooth"]:
             rmmod(module)
+        time.sleep(2)
+        # Avoid a second reaload because of errors during hciconfig down/rmmod
+        self.last_timestamp, _ = self.get_last_timestamp() 
         for module in ["btbcm", "hci_uart", "bnep", "bluetooth"]:
             modprobe(module)
         hciconfig("up")
@@ -767,13 +770,13 @@ class BTManager(Thread):
 
     def phone_watchdog(self) -> WatchdogState:
         # Check for multiple connections
-        nb = 0
+        up_phones = list()
         for key in self.phones:
             self.phones[key].check_connection()
             if self.phones[key].is_up_or_activating():
-                nb += 1
-        if nb > 1:
-            logging.error(f"{self.header}[Phones] Multiple connections at the same time: {nb}")
+               up_phones.append(key)
+        if len(up_phones) > 1:
+            logging.error(f"{self.header}[Phones] Multiple connections at the same time: {', '.join(up_phones)}")
             self.current_phone = None
 
         # RUN
@@ -782,6 +785,7 @@ class BTManager(Thread):
                 self.phones[key].run(self.current_phone == key)
             if self.phones[self.current_phone].is_up_or_activating():
                 return WatchdogState.OK
+        # Logs
         uptime_str = ""
         if self.current_phone and (uptime_ago := self.phones[self.current_phone].up_date_ago):
             uptime_str = f" (uptime:{uptime_ago[0]}min {uptime_ago[1]}s)"
@@ -858,7 +862,7 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.7.2"
+    __version__ = "1.7.3"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
