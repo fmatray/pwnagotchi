@@ -188,7 +188,8 @@ def list_plugins(args, config, pattern='*'):
     """
     found = False
 
-    line = "|{name:^{width}}|{version:^9}|{enabled:^10}|{status:^15}|"
+    # MODIFIED: Added {author} placeholder
+    line = "|{name:^{width}}|{version:^9}|{enabled:^10}|{status:^15}|{author:^22}|"
 
     available = _get_available()
     installed = _get_installed(config)
@@ -201,8 +202,9 @@ def list_plugins(args, config, pattern='*'):
         print('Maybe try: sudo pwnagotchi plugins update')
         return 1
     max_len = max(map(len, max_len_list))
-    header = line.format(name='Plugin', width=max_len, version='Version', enabled='Active', status='Status')
-    line_length = max(max_len, len('Plugin')) + len(header) - len('Plugin') - 12  # lol
+    # MODIFIED: Added author to the header format
+    header = line.format(name='Plugin', width=max_len, version='Version', enabled='Active', status='Status', author='Author')
+    line_length = len(header) - 10 # Adjusted for new column length
 
     print('-' * line_length)
     print(header)
@@ -225,17 +227,19 @@ def list_plugins(args, config, pattern='*'):
                     status = "installed (^)"
 
             enabled = 'enabled' if (plugin in config['main']['plugins'] and
-                                    'enabled' in config['main']['plugins'][plugin] and
-                                    config['main']['plugins'][plugin]['enabled']) else 'disabled'
+                                     'enabled' in config['main']['plugins'][plugin] and
+                                     config['main']['plugins'][plugin]['enabled']) else 'disabled'
 
-            print(line.format(name=plugin, width=max_len, version='.'.join(installed_version), enabled=enabled, status=status))
+            # MODIFIED: Added author=_extract_author(filename) to the print format
+            print(line.format(name=plugin, width=max_len, version='.'.join(installed_version), enabled=enabled, status=status, author=_extract_author(filename)))
 
     for plugin in sorted(available_not_installed):
         if not fnmatch(plugin, pattern):
             continue
         found = True
         available_version = _extract_version(available[plugin])
-        print(line.format(name=plugin, width=max_len, version='.'.join(available_version), enabled='-', status='available'))
+        # MODIFIED: Added author=_extract_author(available[plugin]) to the print format
+        print(line.format(name=plugin, width=max_len, version='.'.join(available_version), enabled='-', status='available', author=_extract_author(available[plugin])))
 
     print('-' * line_length)
 
@@ -254,6 +258,22 @@ def _extract_version(filename):
     if m:
         return parse_version(m.groups()[0])
     return None
+
+
+# NEW FUNCTION ADDED
+def _extract_author(filename):
+    """
+    Extracts the author from a python file
+    """
+    try:
+        with open(filename, 'rt', errors='ignore') as f:
+            plugin_content = f.read()
+        m = re.search(r'__author__[\t ]*=[\t ]*[\'\"]([^\"\']+)', plugin_content)
+        if m:
+            return m.groups()[0]
+    except Exception:
+        pass
+    return 'n/a'  # Return 'n/a' if author not found
 
 
 def _get_available():
@@ -413,4 +433,3 @@ def update(config):
             logging.error('Error while updating plugins: %s', ex)
             rc = 1
     return rc
-    

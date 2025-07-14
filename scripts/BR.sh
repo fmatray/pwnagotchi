@@ -77,6 +77,7 @@ do_backup() {
   FILES_TO_BACKUP="
 /root/settings.yaml
 /root/client_secrets.json
+/root/auto-tune-presets
 /root/.api-report.json
 /root/.ssh
 /root/.bashrc
