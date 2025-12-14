@@ -170,10 +170,10 @@ class BTTether(plugins.Plugin):
             return
         if self.options["phone"].lower() == "android":
             address = self.options.get("ip", "192.168.44.2")
-            gateway = "192.168.44.1"
+            gateway = self.options.get("gateway", "192.168.44.1")
         elif self.options["phone"].lower() == "ios":
             address = self.options.get("ip", "172.20.10.2")
-            gateway = "172.20.10.1"
+            gateway = self.options.get("gateway", "172.20.10.1")
         if not re.match(IP_PTTRN, address):
             logging.error(f"[BT-Tether] IP error: {address}")
             return
