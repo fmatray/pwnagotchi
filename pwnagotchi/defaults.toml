@@ -108,6 +108,7 @@ receive_email = "yes"
 
 [main.plugins.pwndroid]
 enabled = false
+gateway = "" # leave empty unless you need a specific gateway
 display = false # show coords on display
 display_altitude = false # show altitude on display
 
