@@ -62,6 +62,7 @@ phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
 mac = ""
 phone = "" # android or ios
 ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+gateway = "" #optional, default : 192.168.44.1 if android or 172.20.10.2 if ios
 dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
 
 [main.plugins.fix_services]
