@@ -161,14 +161,19 @@ class View(object):
     def get(self, key):
         return self._state.get(key)
 
+    def _get_random_face(self, face_or_faces):
+        if isinstance(face_or_faces, list):
+            return random.choice(face_or_faces)
+        return face_or_faces
+
     def on_starting(self):
         self.set('status', self._voice.on_starting() + ("\n(v%s)" % pwnagotchi.__version__))
-        self.set('face', faces.AWAKE)
+        self.set('face', self._get_random_face(faces.AWAKE))
         self.update()
 
     def on_manual_mode(self, last_session):
         self.set('mode', 'MANU')
-        self.set('face', faces.SAD if (last_session.epochs > 3 and last_session.handshakes == 0) else faces.HAPPY)
+        self.set('face', self._get_random_face(faces.SAD) if (last_session.epochs > 3 and last_session.handshakes == 0) else self._get_random_face(faces.HAPPY))
         self.set('status', self._voice.on_last_session_data(last_session))
         self.set('epoch', "%04d" % last_session.epochs)
         self.set('uptime', last_session.duration)
@@ -180,25 +185,26 @@ class View(object):
         self.update()
 
     def is_normal(self):
-        return self._state.get('face') not in (
-            faces.INTENSE,
-            faces.COOL,
-            faces.BORED,
-            faces.HAPPY,
-            faces.EXCITED,
-            faces.MOTIVATED,
-            faces.DEMOTIVATED,
-            faces.SMART,
-            faces.SAD,
+        face = self._state.get('face')
+        return face not in (
+            faces.INTENSE +
+            faces.COOL +
+            faces.BORED +
+            faces.HAPPY +
+            faces.EXCITED +
+            faces.MOTIVATED +
+            faces.DEMOTIVATED +
+            faces.SMART +
+            faces.SAD +
             faces.LONELY)
 
     def on_keys_generation(self):
-        self.set('face', faces.AWAKE)
+        self.set('face', self._get_random_face(faces.AWAKE))
         self.set('status', self._voice.on_keys_generation())
         self.update()
 
     def on_normal(self):
-        self.set('face', faces.AWAKE)
+        self.set('face', self._get_random_face(faces.AWAKE))
         self.set('status', self._voice.on_normal())
         self.update()
 
@@ -235,13 +241,13 @@ class View(object):
         face = ''
         # first time they met, neutral mood
         if peer.first_encounter():
-            face = random.choice((faces.AWAKE, faces.COOL))
+            face = self._get_random_face(random.choice((faces.AWAKE, faces.COOL)))
         # a good friend, positive expression
         elif peer.is_good_friend(self._config):
-            face = random.choice((faces.MOTIVATED, faces.FRIEND, faces.HAPPY))
+            face = self._get_random_face(random.choice((faces.MOTIVATED, faces.FRIEND, faces.HAPPY)))
         # normal friend, neutral-positive
         else:
-            face = random.choice((faces.EXCITED, faces.HAPPY, faces.SMART))
+            face = self._get_random_face(random.choice((faces.EXCITED, faces.HAPPY, faces.SMART)))
 
         self.set('face', face)
         self.set('status', self._voice.on_new_peer(peer))
@@ -249,17 +255,17 @@ class View(object):
         time.sleep(3)
 
     def on_lost_peer(self, peer):
-        self.set('face', faces.LONELY)
+        self.set('face', self._get_random_face(faces.LONELY))
         self.set('status', self._voice.on_lost_peer(peer))
         self.update()
 
     def on_free_channel(self, channel):
-        self.set('face', faces.SMART)
+        self.set('face', self._get_random_face(faces.SMART))
         self.set('status', self._voice.on_free_channel(channel))
         self.update()
 
     def on_reading_logs(self, lines_so_far=0):
-        self.set('face', faces.SMART)
+        self.set('face', self._get_random_face(faces.SMART))
         self.set('status', self._voice.on_reading_logs(lines_so_far))
         self.update()
 
@@ -274,21 +280,19 @@ class View(object):
             # always override any minor state change before it
             if was_normal or step > 5:
                 if sleeping:
+                    self.set('face', self._get_random_face(faces.SLEEP))
                     if secs > 1:
-                        self.set('face', faces.SLEEP)
                         self.set('status', self._voice.on_napping(int(secs)))
-
                     else:
-                        self.set('face', faces.SLEEP2)
                         self.set('status', self._voice.on_awakening())
                 else:
                     self.set('status', self._voice.on_waiting(int(secs)))
 
                     good_mood = self._agent.in_good_mood()
                     if step % 2 == 0:
-                        self.set('face', faces.LOOK_R_HAPPY if good_mood else faces.LOOK_R)
+                        self.set('face', self._get_random_face(faces.LOOK_R_HAPPY) if good_mood else self._get_random_face(faces.LOOK_R))
                     else:
-                        self.set('face', faces.LOOK_L_HAPPY if good_mood else faces.LOOK_L)
+                        self.set('face', self._get_random_face(faces.LOOK_L_HAPPY) if good_mood else self._get_random_face(faces.LOOK_L))
 
             time.sleep(part)
             secs -= part
@@ -296,89 +300,89 @@ class View(object):
         self.on_normal()
 
     def on_shutdown(self):
-        self.set('face', faces.SLEEP)
+        self.set('face', self._get_random_face(faces.SLEEP))
         self.set('status', self._voice.on_shutdown())
         self.update(force=True)
         self._frozen = True
 
     def on_bored(self):
-        self.set('face', faces.BORED)
+        self.set('face', self._get_random_face(faces.BORED))
         self.set('status', self._voice.on_bored())
         self.update()
 
     def on_sad(self):
-        self.set('face', faces.SAD)
+        self.set('face', self._get_random_face(faces.SAD))
         self.set('status', self._voice.on_sad())
         self.update()
 
     def on_angry(self):
-        self.set('face', faces.ANGRY)
+        self.set('face', self._get_random_face(faces.ANGRY))
         self.set('status', self._voice.on_angry())
         self.update()
 
     def on_motivated(self, reward):
-        self.set('face', faces.MOTIVATED)
+        self.set('face', self._get_random_face(faces.MOTIVATED))
         self.set('status', self._voice.on_motivated(reward))
         self.update()
 
     def on_demotivated(self, reward):
-        self.set('face', faces.DEMOTIVATED)
+        self.set('face', self._get_random_face(faces.DEMOTIVATED))
         self.set('status', self._voice.on_demotivated(reward))
         self.update()
 
     def on_excited(self):
-        self.set('face', faces.EXCITED)
+        self.set('face', self._get_random_face(faces.EXCITED))
         self.set('status', self._voice.on_excited())
         self.update()
 
     def on_assoc(self, ap):
-        self.set('face', faces.INTENSE)
+        self.set('face', self._get_random_face(faces.INTENSE))
         self.set('status', self._voice.on_assoc(ap))
         self.update()
 
     def on_deauth(self, sta):
-        self.set('face', faces.COOL)
+        self.set('face', self._get_random_face(faces.COOL))
         self.set('status', self._voice.on_deauth(sta))
         self.update()
 
     def on_miss(self, who):
-        self.set('face', faces.SAD)
+        self.set('face', self._get_random_face(faces.SAD))
         self.set('status', self._voice.on_miss(who))
         self.update()
 
     def on_grateful(self):
-        self.set('face', faces.GRATEFUL)
+        self.set('face', self._get_random_face(faces.GRATEFUL))
         self.set('status', self._voice.on_grateful())
         self.update()
 
     def on_lonely(self):
-        self.set('face', faces.LONELY)
+        self.set('face', self._get_random_face(faces.LONELY))
         self.set('status', self._voice.on_lonely())
         self.update()
 
     def on_handshakes(self, new_shakes):
-        self.set('face', faces.HAPPY)
+        self.set('face', self._get_random_face(faces.HAPPY))
         self.set('status', self._voice.on_handshakes(new_shakes))
         self.update()
 
     def on_unread_messages(self, count, total):
-        self.set('face', faces.EXCITED)
+        self.set('face', self._get_random_face(faces.EXCITED))
         self.set('status', self._voice.on_unread_messages(count, total))
         self.update()
         time.sleep(5.0)
 
     def on_uploading(self, to):
-        self.set('face', random.choice((faces.UPLOAD, faces.UPLOAD1, faces.UPLOAD2)))
+        self.set('face', self._get_random_face(faces.UPLOAD))
         self.set('status', self._voice.on_uploading(to))
         self.update(force=True)
 
     def on_rebooting(self):
-        self.set('face', faces.BROKEN)
+        self.set('face', self._get_random_face(faces.BROKEN))
         self.set('status', self._voice.on_rebooting())
         self.update()
 
     def on_custom(self, text):
-        self.set('face', faces.DEBUG)
+        self.set('face', self._get_random_face(faces.DEBUG))
         self.set('status', self._voice.custom(text))
         self.update()
 
