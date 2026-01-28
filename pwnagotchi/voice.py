@@ -27,6 +27,7 @@ class Voice:
             self._('Hack the Planet!'),
             self._('No more mister Wi-Fi!!'),
             self._('Pretty fly 4 a Wi-Fi!'),
+            self._('Sniff. Deauth. Repeat.'),
             self._('Good Pwning!'), # Battlestar Galactica
             self._('Ensign, Engage!'), # Star trek
             self._('Free your Wi-Fi!'), # Matrix
@@ -161,6 +162,8 @@ class Voice:
             self._('Hey {what} let\'s be friends!').format(what=what),
             self._('Associating to {what}').format(what=what),
             self._('Yo {what}!').format(what=what),
+            self._('Hello there, {what}').format(what=what),
+            self._('Mind if I join, {what}?').format(what=what),
             self._('Rise and Shine Mr. {what}!').format(what=what), # Half Life
         ])
 
@@ -170,6 +173,9 @@ class Voice:
             self._('Deauthenticating {mac}').format(mac=sta['mac']),
             self._('No more Wi-Fi for {mac}').format(mac=sta['mac']),
             self._('It\'s a trap! {mac}').format(mac=sta['mac']),  # Star wars
+            self._('Consider yourself unplugged, {mac}').format(mac=sta['mac']),
+            self._('Hasta la vista, {mac}').format(mac=sta['mac']), # Terminator
+            self._('You shall not pass, {mac}').format(mac=sta['mac']), # LOTR
             self._('Kickbanning {mac}!').format(mac=sta['mac'])])
 
     def on_handshakes(self, new_shakes):
@@ -183,16 +189,22 @@ class Voice:
     def on_rebooting(self):
         return random.choice([
             self._("Oops, something went wrong ... Rebooting ..."),
+            self._("Well, this is awkward."),
+            self._("Tell my packets I love them."),
             self._("Have you tried turning it off and on again?"), # The IT crew
             self._("I\'m afraid Dave"), # 2001 Space Odyssey
             self._("I\'m dead, Jim!"), # Star Trek
             self._("I have a bad feeling about this"), # Star wars
+            self._("You did this."), # Portal Series (GLaDOS)
         ])
 
     def on_uploading(self, to):
         return random.choice([
             self._("Uploading data to {to} ...").format(to=to),
             self._("Beam me up to {to}").format(to=to),
+            self._("Engage warp drive, {to}").format(to=to), # Star Trek
+            self._("Gift-wrapping data for {to}").format(to=to),
+            self._("Please wait, magic happening at {to}").format(to=to),
         ])
 
     def on_downloading(self, name):
