@@ -154,6 +154,28 @@ class BTTether(plugins.Plugin):
     def nmcli(self, args, pattern=None):
         return self.exec_cmd("nmcli", args, pattern)
 
+    def _get_bt_connection_name(self):
+        # Get bluetooth connections that contains the phone-name
+        bt_connections = [
+            connection.split(":")[0].strip()
+            for connection
+            in self.nmcli(["-t", "-f", "NAME,TYPE", "connection", "show"]).stdout.splitlines()
+            if connection.endswith(":bluetooth") and self.options["phone-name"] in connection
+        ]
+
+        if len(bt_connections) == 1:
+            return bt_connections[0]
+        
+        if len(bt_connections) > 1:
+            # Multiple matches found: check the MAC
+            for bt_connection in bt_connections:
+                if self.nmcli(["-f", "bluetooth.bdaddr", "connection", "show", bt_connection], self.options["mac"].upper()) != -1:
+                    return bt_connection
+
+        # Fallback to the old logic
+        logging.error(f"[BT-Tether] Connection not found for {self.options['phone-name']}git")
+        return self.options["phone-name"] + " Network"
+
     def on_loaded(self):
         logging.info("[BT-Tether] plugin loaded.")
 
@@ -178,7 +200,7 @@ class BTTether(plugins.Plugin):
             logging.error(f"[BT-Tether] IP error: {address}")
             return
 
-        self.phone_name = self.options["phone-name"] + " Network"
+        self.phone_name = self._get_bt_connection_name()
         self.mac = self.options["mac"].upper()
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
         if not re.match(DNS_PTTRN, dns):
