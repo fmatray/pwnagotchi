@@ -179,7 +179,7 @@ class BTTether(plugins.Plugin):
             return
 
         self.phone_name = self.options["phone-name"] + " Network"
-        self.mac = self.options["mac"]
+        self.mac = self.options["mac"].upper()
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
         if not re.match(DNS_PTTRN, dns):
             if dns == "":
